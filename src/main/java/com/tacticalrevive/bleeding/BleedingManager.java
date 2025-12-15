@@ -10,14 +10,34 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 /**
  * Static API for managing player bleeding states.
  * Provides methods for querying and manipulating bleeding status.
  */
 public final class BleedingManager {
 
+    /**
+     * Set of player UUIDs who are being intentionally killed.
+     * Used to prevent re-entering downed state in ALLOW_DEATH handler.
+     */
+    private static final Set<UUID> playersBeingKilled = new HashSet<>();
+
     private BleedingManager() {
         // Utility class
+    }
+
+    /**
+     * Check if a player is being intentionally killed (should bypass revival).
+     *
+     * @param player the player to check
+     * @return true if the player is being killed and should not re-enter downed state
+     */
+    public static boolean isBeingKilled(Player player) {
+        return playersBeingKilled.contains(player.getUUID());
     }
 
     /**
@@ -123,22 +143,31 @@ public final class BleedingManager {
             serverPlayer.server.getPlayerList().broadcastSystemMessage(message, false);
         }
 
-        // Reset state before killing
-        bleeding.reset();
-        player.setForcedPose(null);
+        // Mark player as being killed to prevent re-entering downed state
+        UUID playerId = player.getUUID();
+        playersBeingKilled.add(playerId);
 
-        // Apply death
-        if (originalSource != null) {
-            player.hurt(originalSource, Float.MAX_VALUE);
-        } else {
-            // Fallback - use generic damage
-            player.kill();
+        try {
+            // Reset state before killing
+            bleeding.reset();
+            player.setForcedPose(null);
+
+            // Apply death
+            if (originalSource != null) {
+                player.hurt(originalSource, Float.MAX_VALUE);
+            } else {
+                // Fallback - use generic damage
+                player.kill();
+            }
+
+            // Sync to clients
+            syncBleedingState(player);
+
+            TacticalRevive.LOGGER.debug("Player {} could not be saved", player.getName().getString());
+        } finally {
+            // Always remove from killed set to prevent memory leaks
+            playersBeingKilled.remove(playerId);
         }
-
-        // Sync to clients
-        syncBleedingState(player);
-
-        TacticalRevive.LOGGER.debug("Player {} could not be saved", player.getName().getString());
     }
 
     /**

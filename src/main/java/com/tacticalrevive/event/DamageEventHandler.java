@@ -41,6 +41,12 @@ public final class DamageEventHandler {
             return true; // Allow non-player death
         }
 
+        // Check if player is being intentionally killed (bled out, disconnected, etc.)
+        // This prevents infinite loop where kill() -> hurt() -> ALLOW_DEATH -> startBleeding()
+        if (BleedingManager.isBeingKilled(player)) {
+            return true; // Allow death - intentional kill
+        }
+
         // Check if player is already bleeding
         if (BleedingManager.isBleeding(player)) {
             // Already bleeding - check if bled out
