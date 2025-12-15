@@ -7,10 +7,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
 /**
- * Handles TACZ-specific events for damage interception.
+ * Handles TACZ-specific events for damage interception and action restriction.
  * Uses reflection to avoid hard dependency on TACZ.
  *
- * <p>This handler addresses three key issues with TACZ integration:
+ * <p>This handler addresses the following issues with TACZ integration:
  * <ol>
  *   <li><b>Double damage</b>: TACZ calls hurt() twice per bullet (normal + armor-piercing).
  *       We cancel the Pre event for downed players to prevent tacAttackEntity from running.</li>
@@ -18,6 +18,8 @@ import net.minecraft.world.entity.player.Player;
  *       By cancelling Pre, tacAttackEntity never runs, so no reset occurs.</li>
  *   <li><b>EntityKillByGunEvent timing</b>: TACZ fires kill event based on isDeadOrDying().
  *       Since we set health > 0 on downed state, this check should return false.</li>
+ *   <li><b>Gun actions while downed</b>: Downed players should not be able to shoot, reload,
+ *       or melee. We cancel GunShootEvent, GunFireEvent, GunReloadEvent, and GunMeleeEvent.</li>
  * </ol>
  */
 public final class TaczEventHandler {
@@ -53,6 +55,7 @@ public final class TaczEventHandler {
      */
     private static void registerTaczEvents() {
         try {
+            // === Damage Event Handlers ===
             // Register Pre event handler - this is the main damage interception point
             TaczEventBridge.registerPreEventHandler(TaczEventHandler::onEntityHurtByGunPre);
             TacticalRevive.LOGGER.info("TACZ EntityHurtByGunEvent.Pre handler registered");
@@ -64,6 +67,23 @@ public final class TaczEventHandler {
             // Register Post event handler - for initial damage detection
             TaczEventBridge.registerPostEventHandler(TaczEventHandler::onEntityHurtByGunPost);
             TacticalRevive.LOGGER.info("TACZ EntityHurtByGunEvent.Post handler registered");
+
+            // === Gun Action Event Handlers ===
+            // Prevent downed players from shooting
+            TaczEventBridge.registerShootEventHandler(TaczEventHandler::shouldCancelGunAction);
+            TacticalRevive.LOGGER.info("TACZ GunShootEvent handler registered");
+
+            // Prevent downed players from firing (backup for burst mode)
+            TaczEventBridge.registerFireEventHandler(TaczEventHandler::shouldCancelGunAction);
+            TacticalRevive.LOGGER.info("TACZ GunFireEvent handler registered");
+
+            // Prevent downed players from reloading
+            TaczEventBridge.registerReloadEventHandler(TaczEventHandler::shouldCancelGunAction);
+            TacticalRevive.LOGGER.info("TACZ GunReloadEvent handler registered");
+
+            // Prevent downed players from melee attacks
+            TaczEventBridge.registerMeleeEventHandler(TaczEventHandler::shouldCancelGunAction);
+            TacticalRevive.LOGGER.info("TACZ GunMeleeEvent handler registered");
         } catch (Exception e) {
             TacticalRevive.LOGGER.error("Failed to register TACZ event handlers", e);
         }
@@ -136,6 +156,30 @@ public final class TaczEventHandler {
             TacticalRevive.LOGGER.debug("TACZ KillEvent for downed player {} (health: {}) - this is expected if player just entered downed state",
                     player.getName().getString(), player.getHealth());
         }
+    }
+
+    // ========== Gun Action Handlers ==========
+
+    /**
+     * Check if a gun action should be cancelled for this entity.
+     * Used by all gun action event handlers (shoot, fire, reload, melee).
+     *
+     * @param entity the entity performing the action
+     * @return true to cancel the action
+     */
+    public static boolean shouldCancelGunAction(LivingEntity entity) {
+        if (!(entity instanceof Player player)) {
+            return false; // Allow non-players
+        }
+
+        // Cancel if player is downed
+        if (BleedingManager.isBleeding(player)) {
+            TacticalRevive.LOGGER.debug("Cancelling gun action for downed player: {}",
+                    player.getName().getString());
+            return true;
+        }
+
+        return false;
     }
 
     /**
