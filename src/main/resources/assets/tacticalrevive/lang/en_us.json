@@ -1,0 +1,15 @@
+{
+  "tacticalrevive.message.downed": "%s is down! They need assistance!",
+  "tacticalrevive.message.revived": "%s has been revived!",
+  "tacticalrevive.message.died": "%s could not be saved.",
+  "tacticalrevive.message.helping": "Reviving %s...",
+
+  "tacticalrevive.hud.time_left": "Time Left: %s",
+  "tacticalrevive.hud.revive_progress": "Revive Progress",
+  "tacticalrevive.hud.wait_for_help": "Wait for help or hold [%s] for %d seconds to give up",
+  "tacticalrevive.hud.give_up_key": "ATTACK",
+  "tacticalrevive.hud.helper_count": "%d teammate(s) reviving",
+
+  "tacticalrevive.status.downed": "DOWNED",
+  "tacticalrevive.status.reviving": "REVIVING"
+}

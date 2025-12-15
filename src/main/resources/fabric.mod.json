@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "tacticalrevive",
+  "version": "${version}",
+  "name": "TacticalRevive",
+  "description": "A revival system compatible with TACZ guns. When players take fatal damage, they enter a bleeding state and can be revived by teammates.",
+  "authors": ["TacticalRevive Team"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/tacticalrevive/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.tacticalrevive.TacticalRevive"],
+    "client": ["com.tacticalrevive.client.TacticalReviveClient"]
+  },
+  "mixins": ["tacticalrevive.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "tacz": "*"
+  }
+}
