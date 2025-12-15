@@ -1,0 +1,61 @@
+2.0.37
+Added option forceLookAt which makes the reviving player lock to the bleeding player
+
+2.0.36
+Added entity selector option to detect via commands whether a player is bleeding or not. [bleeding=true] will select all bleeding players, if set to false all none bleeding entities
+
+2.0.35
+Adapted to CreativeCore 2.13.0
+
+2.0.34
+Changed bleedingMessageTrackingOnly comment (suggested by @Eric-01)
+
+2.0.33
+Added bleedingMessageTrackingOnly comment
+
+2.0.32
+Added tr_tr.json Turkish Localization (thanks to RuyaSavascisi)
+
+2.0.31
+Added disableAllGUIAccess option (disabled by default)
+
+2.0.30
+Added disableInventoryAccess, disableChatAccess and disableServerCommands (all are disabled by default)
+Add Traditional Chinese `zh_tw.json` (by yichifauzi)
+
+2.0.29
+Improved translations and cleaned up their files (Greg-21)
+
+2.0.28
+Fixed commands being gone after using reload
+
+2.0.27
+Added enableBypassDamage, bypassDamage and bypassSourceByDamage to allow configuration to bypass bleeding when taking large amounts of damage (by default it is disabled)
+Added hordes:infection to bypass bleeding by default
+Fixed bypassDamageSources not respecting registry key
+
+2.0.26
+Updated to neoforge 21.0.45-beta
+
+2.0.25
+Fixed player not getting killed when bleeding after leaving the game (compatibility issue with TheAether)
+Potential fix for using interactions from other mods while bleeding
+Added ja_jp.lang (by RyoTagami)
+
+2.0.24
+Fixed swimming pose being forced on server even after player has been revived or killed
+
+2.0.23
+Added config option can be pushed
+
+2.0.22
+Fixed glitching pose when bleeding
+Adapted CreativeCore changes of adding hideParticle option to mob config
+
+2.0.21
+Fixed not consuming item
+Fixed sending missing item message twice
+Fixed only having to consume revive item once for each player
+
+2.0.20
+Fixed being able to get rid of blur effect by switching perspective (F5)
