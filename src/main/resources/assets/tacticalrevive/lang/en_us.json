@@ -1,0 +1,5 @@
+{
+  "tacticalrevive.message.bleeding": "%s is bleeding out and needs help!",
+  "tacticalrevive.hud.time_left": "Time Left: %s",
+  "tacticalrevive.hud.wait_for_help": "Wait for help or hold ATTACK to give up"
+}

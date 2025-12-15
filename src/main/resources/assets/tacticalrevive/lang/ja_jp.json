@@ -1,0 +1,5 @@
+{
+  "tacticalrevive.message.bleeding": "%s が出血しています。助けが必要です！",
+  "tacticalrevive.hud.time_left": "残り時間: %s",
+  "tacticalrevive.hud.wait_for_help": "助けを待つか、攻撃キーを長押しして諦める"
+}
