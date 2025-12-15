@@ -2,14 +2,27 @@ package com.tacticalrevive.event;
 
 import com.tacticalrevive.bleeding.BleedingManager;
 import com.tacticalrevive.config.TacticalReviveConfig;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
 /**
  * Handles damage-related events for the bleeding system.
+ *
+ * <p>Damage handling flow:
+ * <ol>
+ *   <li>For TACZ gun damage: {@link TaczEventHandler#onEntityHurtByGunPre} handles interception
+ *       BEFORE the hurt() call, cancelling all gun damage to downed players.</li>
+ *   <li>For other damage sources: This handler intercepts via Mixin at hurt() HEAD.</li>
+ *   <li>For lethal damage: ALLOW_DEATH event triggers downed state transition.</li>
+ * </ol>
  */
 public final class DamageEventHandler {
+
+    // TACZ damage type prefixes for detection
+    private static final String TACZ_NAMESPACE = "tacz";
+    private static final String BULLET_TYPE_PREFIX = "bullet";
 
     private DamageEventHandler() {
     }
@@ -93,6 +106,10 @@ public final class DamageEventHandler {
     /**
      * Check if damage should be blocked for a bleeding player.
      *
+     * <p>For TACZ damage, this is a backup check. The primary interception happens
+     * in {@link TaczEventHandler#onEntityHurtByGunPre} which cancels the Pre event
+     * before hurt() is ever called.
+     *
      * @param player the player
      * @param source the damage source
      * @return true if damage should be blocked
@@ -107,8 +124,15 @@ public final class DamageEventHandler {
             return false;
         }
 
-        // Block damage during initial cooldown
+        // Block damage during initial cooldown (handles TACZ double-hurt issue)
+        // This is critical for the second hurt() call in tacAttackEntity
         if (bleeding.getDownedTime() < TacticalReviveConfig.getInitialDamageCooldown()) {
+            return true;
+        }
+
+        // Always block TACZ gun damage to downed players
+        // This is a backup - normally Pre event handler prevents this from being called
+        if (isTaczDamage(source)) {
             return true;
         }
 
@@ -133,5 +157,58 @@ public final class DamageEventHandler {
 
     private static boolean isPlayerDamage(DamageSource source) {
         return source.getEntity() instanceof Player;
+    }
+
+    /**
+     * Check if damage source is from TACZ (gun/bullet damage).
+     * This is a backup check - normally TACZ damage is intercepted at the Pre event level.
+     *
+     * @param source the damage source
+     * @return true if this is TACZ bullet damage
+     */
+    public static boolean isTaczDamage(DamageSource source) {
+        if (source == null || source.type() == null) {
+            return false;
+        }
+
+        try {
+            // Get the damage type's resource location
+            ResourceLocation typeId = source.type().unwrapKey()
+                    .map(key -> key.location())
+                    .orElse(null);
+
+            if (typeId == null) {
+                return false;
+            }
+
+            // Check if it's from TACZ namespace and is bullet damage
+            return TACZ_NAMESPACE.equals(typeId.getNamespace()) &&
+                    typeId.getPath().startsWith(BULLET_TYPE_PREFIX);
+        } catch (Exception e) {
+            // In case of any issues with registry access, fail safely
+            return false;
+        }
+    }
+
+    /**
+     * Check if damage source is armor-piercing TACZ damage.
+     *
+     * @param source the damage source
+     * @return true if this is armor-piercing bullet damage
+     */
+    public static boolean isArmorPiercingTaczDamage(DamageSource source) {
+        if (!isTaczDamage(source)) {
+            return false;
+        }
+
+        ResourceLocation typeId = source.type().unwrapKey()
+                .map(key -> key.location())
+                .orElse(null);
+
+        if (typeId == null) {
+            return false;
+        }
+
+        return typeId.getPath().contains("ignore_armor");
     }
 }
