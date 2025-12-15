@@ -1,5 +1,15 @@
 {
-  "tacticalrevive.message.bleeding": "%s が出血しています。助けが必要です！",
+  "tacticalrevive.message.downed": "%s がダウンしました！救助が必要です！",
+  "tacticalrevive.message.revived": "%s が蘇生されました！",
+  "tacticalrevive.message.died": "%s を救えませんでした。",
+  "tacticalrevive.message.helping": "%s を蘇生中...",
+
   "tacticalrevive.hud.time_left": "残り時間: %s",
-  "tacticalrevive.hud.wait_for_help": "助けを待つか、攻撃キーを長押しして諦める"
+  "tacticalrevive.hud.revive_progress": "蘇生進捗",
+  "tacticalrevive.hud.wait_for_help": "救助を待つか、[%s]を%d秒間長押しで諦める",
+  "tacticalrevive.hud.give_up_key": "攻撃",
+  "tacticalrevive.hud.helper_count": "%d人が蘇生中",
+
+  "tacticalrevive.status.downed": "ダウン",
+  "tacticalrevive.status.reviving": "蘇生中"
 }

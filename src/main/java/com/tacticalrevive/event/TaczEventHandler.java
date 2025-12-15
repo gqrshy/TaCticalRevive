@@ -52,7 +52,7 @@ public final class TaczEventHandler {
 
     /**
      * Handle TACZ EntityHurtByGunEvent.Pre
-     * Cancel damage to bleeding players.
+     * Cancel damage to downed players.
      *
      * @param hurtEntity the entity being hurt
      * @param damage the damage amount
@@ -63,9 +63,9 @@ public final class TaczEventHandler {
             return false; // Don't cancel for non-players
         }
 
-        // Cancel damage if player is bleeding
+        // Cancel damage if player is downed
         if (BleedingManager.isBleeding(player)) {
-            TacticalRevive.LOGGER.debug("Cancelling TACZ damage to bleeding player: {}",
+            TacticalRevive.LOGGER.debug("Cancelling TACZ damage to downed player: {}",
                     player.getName().getString());
             return true; // Cancel the event
         }

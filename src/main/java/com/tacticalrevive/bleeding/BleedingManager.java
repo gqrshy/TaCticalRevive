@@ -45,7 +45,7 @@ public final class BleedingManager {
     }
 
     /**
-     * Start the bleeding state for a player.
+     * Start the downed state for a player.
      *
      * @param player the player
      * @param source the damage source
@@ -60,7 +60,7 @@ public final class BleedingManager {
 
         // Broadcast message
         if (TacticalReviveConfig.shouldShowBleedingMessage() && player instanceof ServerPlayer serverPlayer) {
-            Component message = Component.translatable("tacticalrevive.message.bleeding",
+            Component message = Component.translatable("tacticalrevive.message.downed",
                     player.getDisplayName());
             serverPlayer.server.getPlayerList().broadcastSystemMessage(message, false);
         }
@@ -68,11 +68,11 @@ public final class BleedingManager {
         // Sync to clients
         syncBleedingState(player);
 
-        TacticalRevive.LOGGER.debug("Player {} entered bleeding state", player.getName().getString());
+        TacticalRevive.LOGGER.debug("Player {} entered downed state", player.getName().getString());
     }
 
     /**
-     * Revive a bleeding player.
+     * Revive a downed player.
      *
      * @param player the player to revive
      */
@@ -90,6 +90,13 @@ public final class BleedingManager {
         // Set health after revival
         player.setHealth(TacticalReviveConfig.getHealthAfterRevive());
 
+        // Broadcast revive message
+        if (TacticalReviveConfig.shouldShowBleedingMessage() && player instanceof ServerPlayer serverPlayer) {
+            Component message = Component.translatable("tacticalrevive.message.revived",
+                    player.getDisplayName());
+            serverPlayer.server.getPlayerList().broadcastSystemMessage(message, false);
+        }
+
         // Sync to clients
         syncBleedingState(player);
 
@@ -97,7 +104,7 @@ public final class BleedingManager {
     }
 
     /**
-     * Kill a bleeding player (when they bleed out).
+     * Kill a downed player (when they bleed out or give up).
      *
      * @param player the player to kill
      */
@@ -108,6 +115,13 @@ public final class BleedingManager {
         }
 
         DamageSource originalSource = bleeding.getOriginalDamageSource();
+
+        // Broadcast death message before killing
+        if (TacticalReviveConfig.shouldShowBleedingMessage() && player instanceof ServerPlayer serverPlayer) {
+            Component message = Component.translatable("tacticalrevive.message.died",
+                    player.getDisplayName());
+            serverPlayer.server.getPlayerList().broadcastSystemMessage(message, false);
+        }
 
         // Reset state before killing
         bleeding.reset();
@@ -124,7 +138,7 @@ public final class BleedingManager {
         // Sync to clients
         syncBleedingState(player);
 
-        TacticalRevive.LOGGER.debug("Player {} bled out", player.getName().getString());
+        TacticalRevive.LOGGER.debug("Player {} could not be saved", player.getName().getString());
     }
 
     /**
