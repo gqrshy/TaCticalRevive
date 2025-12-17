@@ -6,7 +6,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -49,18 +48,6 @@ public abstract class PlayerMixin implements BleedingManager.IBleedingAccessor {
     }
 
     /**
-     * Prevent bleeding players from being pushed.
-     */
-    @Inject(method = "isPushable", at = @At("HEAD"), cancellable = true)
-    private void tacticalrevive$isPushable(CallbackInfoReturnable<Boolean> cir) {
-        Player self = (Player) (Object) this;
-
-        if (BleedingManager.isBleeding(self)) {
-            cir.setReturnValue(false);
-        }
-    }
-
-    /**
      * Prevent bleeding players from attacking entities.
      */
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
@@ -85,18 +72,6 @@ public abstract class PlayerMixin implements BleedingManager.IBleedingAccessor {
                 return;
             }
             cir.setReturnValue(InteractionResult.FAIL);
-        }
-    }
-
-    /**
-     * Prevent bleeding players from dropping items.
-     */
-    @Inject(method = "drop(Z)Z", at = @At("HEAD"), cancellable = true)
-    private void tacticalrevive$onDrop(boolean dropAll, CallbackInfoReturnable<Boolean> cir) {
-        Player self = (Player) (Object) this;
-
-        if (BleedingManager.isBleeding(self)) {
-            cir.setReturnValue(false);
         }
     }
 }

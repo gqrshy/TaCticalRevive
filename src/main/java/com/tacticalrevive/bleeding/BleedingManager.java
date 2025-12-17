@@ -73,10 +73,14 @@ public final class BleedingManager {
     public static void startBleeding(Player player, DamageSource source) {
         IBleeding bleeding = getBleeding(player);
         if (bleeding == null) {
+            TacticalRevive.LOGGER.error("[DEBUG] getBleeding returned null! Mixin may not be applied. Player class: {}",
+                    player.getClass().getName());
             return;
         }
 
+        TacticalRevive.LOGGER.info("[DEBUG] Calling knockOut for player {}", player.getName().getString());
         bleeding.knockOut(player, source);
+        TacticalRevive.LOGGER.info("[DEBUG] After knockOut: health={}, isBleeding={}", player.getHealth(), bleeding.isBleeding());
 
         // Broadcast message
         if (TacticalReviveConfig.shouldShowBleedingMessage() && player instanceof ServerPlayer serverPlayer) {
@@ -104,8 +108,8 @@ public final class BleedingManager {
 
         bleeding.revive();
 
-        // Reset pose
-        player.setForcedPose(null);
+        // Reset pose - refresh to recalculate
+        player.refreshDimensions();
 
         // Set health after revival
         player.setHealth(TacticalReviveConfig.getHealthAfterRevive());
@@ -150,7 +154,7 @@ public final class BleedingManager {
         try {
             // Reset state before killing
             bleeding.reset();
-            player.setForcedPose(null);
+            player.refreshDimensions();
 
             // Apply death
             if (originalSource != null) {

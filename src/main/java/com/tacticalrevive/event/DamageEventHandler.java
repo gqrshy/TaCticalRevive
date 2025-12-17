@@ -1,5 +1,6 @@
 package com.tacticalrevive.event;
 
+import com.tacticalrevive.TacticalRevive;
 import com.tacticalrevive.bleeding.BleedingManager;
 import com.tacticalrevive.config.TacticalReviveConfig;
 import net.minecraft.resources.ResourceLocation;
@@ -37,13 +38,17 @@ public final class DamageEventHandler {
      * @return true to allow death, false to prevent
      */
     public static boolean onAllowDeath(LivingEntity entity, DamageSource source, float amount) {
+        TacticalRevive.LOGGER.info("[DEBUG] onAllowDeath called for {} with source {}", entity.getName().getString(), source.getMsgId());
+
         if (!(entity instanceof Player player)) {
+            TacticalRevive.LOGGER.info("[DEBUG] Not a player, allowing death");
             return true; // Allow non-player death
         }
 
         // Check if player is being intentionally killed (bled out, disconnected, etc.)
         // This prevents infinite loop where kill() -> hurt() -> ALLOW_DEATH -> startBleeding()
         if (BleedingManager.isBeingKilled(player)) {
+            TacticalRevive.LOGGER.info("[DEBUG] Player is being killed intentionally, allowing death");
             return true; // Allow death - intentional kill
         }
 
@@ -52,23 +57,32 @@ public final class DamageEventHandler {
             // Already bleeding - check if bled out
             var bleeding = BleedingManager.getBleeding(player);
             if (bleeding != null && bleeding.hasBledOut()) {
+                TacticalRevive.LOGGER.info("[DEBUG] Player has bled out, allowing death");
                 return true; // Allow death - player bled out
             }
+            TacticalRevive.LOGGER.info("[DEBUG] Player already bleeding, preventing death");
             return false; // Prevent death while bleeding
         }
 
         // Check if revival should be active
         if (!isReviveActive(player)) {
+            TacticalRevive.LOGGER.info("[DEBUG] Revival not active (creative={}, spectator={}, playerCount={}, singlePlayerEnabled={})",
+                    player.isCreative(), player.isSpectator(), player.level().players().size(),
+                    TacticalReviveConfig.shouldEnableSinglePlayer());
             return true; // Allow death
         }
 
         // Check for bypass conditions
         if (shouldBypassRevive(player, source, amount)) {
+            TacticalRevive.LOGGER.info("[DEBUG] Bypass condition met, allowing death");
             return true; // Allow death
         }
 
         // Start bleeding instead of dying
+        TacticalRevive.LOGGER.info("[DEBUG] Starting bleeding for player {}", player.getName().getString());
         BleedingManager.startBleeding(player, source);
+        TacticalRevive.LOGGER.info("[DEBUG] After startBleeding, player health={}, isBleeding={}",
+                player.getHealth(), BleedingManager.isBleeding(player));
         return false; // Prevent death
     }
 
@@ -87,8 +101,7 @@ public final class DamageEventHandler {
         }
 
         // Check if multiplayer (or singleplayer with config)
-        if (player.level().players().size() <= 1) {
-            // Single player - could add config option
+        if (player.level().players().size() <= 1 && !TacticalReviveConfig.shouldEnableSinglePlayer()) {
             return false;
         }
 
@@ -179,7 +192,7 @@ public final class DamageEventHandler {
 
         try {
             // Get the damage type's resource location
-            ResourceLocation typeId = source.type().unwrapKey()
+            ResourceLocation typeId = source.typeHolder().unwrapKey()
                     .map(key -> key.location())
                     .orElse(null);
 
@@ -207,14 +220,18 @@ public final class DamageEventHandler {
             return false;
         }
 
-        ResourceLocation typeId = source.type().unwrapKey()
-                .map(key -> key.location())
-                .orElse(null);
+        try {
+            ResourceLocation typeId = source.typeHolder().unwrapKey()
+                    .map(key -> key.location())
+                    .orElse(null);
 
-        if (typeId == null) {
+            if (typeId == null) {
+                return false;
+            }
+
+            return typeId.getPath().contains("ignore_armor");
+        } catch (Exception e) {
             return false;
         }
-
-        return typeId.getPath().contains("ignore_armor");
     }
 }

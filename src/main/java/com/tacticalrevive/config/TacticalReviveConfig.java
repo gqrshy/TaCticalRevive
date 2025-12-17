@@ -42,6 +42,9 @@ public final class TacticalReviveConfig {
     private static boolean disableMobDamage = false;
     private static boolean disablePlayerDamage = false;
 
+    // Single-player support
+    private static boolean enableSinglePlayer = false;
+
     public static void load() {
         // TODO: Load from config file if needed
         TacticalRevive.LOGGER.info("Configuration loaded with defaults");
@@ -157,5 +160,9 @@ public final class TacticalReviveConfig {
 
     public static boolean shouldDisablePlayerDamage() {
         return disablePlayerDamage;
+    }
+
+    public static boolean shouldEnableSinglePlayer() {
+        return enableSinglePlayer;
     }
 }

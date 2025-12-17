@@ -1,9 +1,10 @@
 package com.tacticalrevive.event;
 
 import com.tacticalrevive.bleeding.BleedingManager;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworkHandler;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.server.level.ServerPlayer;
+import java.util.ArrayList;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -24,7 +25,8 @@ public final class PlayerEventHandler {
      * Processes bleeding state for all players.
      */
     public static void onServerTick(MinecraftServer server) {
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+        // Defensive copy to prevent ConcurrentModificationException if player list changes during iteration
+        for (ServerPlayer player : new ArrayList<>(server.getPlayerList().getPlayers())) {
             if (BleedingManager.isBleeding(player)) {
                 BleedingManager.tickBleeding(player);
             }
@@ -72,7 +74,7 @@ public final class PlayerEventHandler {
      * Called when a player disconnects.
      * Kill the player if they disconnect while bleeding.
      */
-    public static void onPlayerDisconnect(ServerPlayNetworkHandler handler, MinecraftServer server) {
+    public static void onPlayerDisconnect(ServerGamePacketListenerImpl handler, MinecraftServer server) {
         ServerPlayer player = handler.getPlayer();
 
         // Remove as helper from all bleeding players

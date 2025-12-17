@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(gradle wrapper:*)",
+      "Bash(curl:*)",
+      "Bash(./gradlew.bat build -x test)",
+      "Bash(./gradlew.bat build)",
+      "Bash(./gradlew.bat --stop)",
+      "Bash(./gradlew.bat:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File deploy.ps1)",
+      "Bash(powershell -ExecutionPolicy Bypass -File deploy.ps1 -NoBuild)"
+    ]
+  }
+}

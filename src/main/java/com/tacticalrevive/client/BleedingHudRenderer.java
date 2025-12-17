@@ -3,6 +3,7 @@ package com.tacticalrevive.client;
 import com.tacticalrevive.config.TacticalReviveConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
@@ -22,7 +23,7 @@ public final class BleedingHudRenderer {
     /**
      * Render the downed HUD if the local player is downed.
      */
-    public static void render(GuiGraphics graphics, float tickDelta) {
+    public static void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
 
         if (client.player == null || client.level == null) {

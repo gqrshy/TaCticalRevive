@@ -73,7 +73,7 @@ public class BleedingData implements IBleeding {
         player.setHealth(TacticalReviveConfig.getBleedingHealth());
 
         // Force swimming pose (crawling)
-        player.setForcedPose(Pose.SWIMMING);
+        player.setPose(Pose.SWIMMING);
 
         // Apply initial effects
         applyBleedingEffects(player);
@@ -103,7 +103,7 @@ public class BleedingData implements IBleeding {
         downedTime++;
 
         // Maintain forced pose
-        player.setForcedPose(Pose.SWIMMING);
+        player.setPose(Pose.SWIMMING);
 
         // Apply bleeding effects every tick
         applyBleedingEffects(player);
@@ -227,15 +227,20 @@ public class BleedingData implements IBleeding {
     }
 
     public void fromNbt(CompoundTag tag) {
-        this.bleeding = tag.getBoolean("bleeding");
-        this.timeLeft = tag.getInt("timeLeft");
-        this.downedTime = tag.getInt("downedTime");
-        this.reviveProgress = tag.getFloat("reviveProgress");
+        try {
+            this.bleeding = tag.getBoolean("bleeding");
+            this.timeLeft = tag.getInt("timeLeft");
+            this.downedTime = tag.getInt("downedTime");
+            this.reviveProgress = tag.getFloat("reviveProgress");
 
-        this.revivingPlayers.clear();
-        ListTag helpersList = tag.getList("helpers", Tag.TAG_INT_ARRAY);
-        for (Tag t : helpersList) {
-            this.revivingPlayers.add(NbtUtils.loadUUID(t));
+            this.revivingPlayers.clear();
+            ListTag helpersList = tag.getList("helpers", Tag.TAG_INT_ARRAY);
+            for (Tag t : helpersList) {
+                this.revivingPlayers.add(NbtUtils.loadUUID(t));
+            }
+        } catch (Exception e) {
+            // Reset to safe state if NBT data is corrupted
+            reset();
         }
     }
 }
